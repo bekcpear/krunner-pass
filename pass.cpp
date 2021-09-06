@@ -235,8 +235,10 @@ void Pass::run(const Plasma::RunnerContext &context, const Plasma::QueryMatch &m
                         const auto string = QString::fromUtf8(output.data());
                         const auto lines = string.split('\n', QString::SkipEmptyParts);
                         if (!lines.isEmpty()) {
-                            clip(lines[0]);
-                            this->showNotification(match.text());
+                            auto *tpass = new QProcess();
+                            QStringList args0;
+                            args0 << "type" << "--clearmodifiers" << lines[0];
+                            tpass->start("xdotool", args0);
                         }
                     }
                 }
