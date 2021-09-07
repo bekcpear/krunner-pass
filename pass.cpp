@@ -235,6 +235,7 @@ void Pass::run(const Plasma::RunnerContext &context, const Plasma::QueryMatch &m
                         const auto string = QString::fromUtf8(output.data());
                         const auto lines = string.split('\n', QString::SkipEmptyParts);
                         if (!lines.isEmpty()) {
+                            this->showNotification(match.text(), "type");
                             auto *tpass = new QProcess();
                             QStringList args0;
                             args0 << "type" << "--clearmodifiers" << lines[0];
@@ -258,10 +259,16 @@ QList<QAction *> Pass::actionsForMatch(const Plasma::QueryMatch &match)
 void Pass::showNotification(const QString &text, const QString &actionName)
 {
     const QString msgPrefix = actionName.isEmpty() ? "" : actionName + i18n(" of ");
-    const QString msg = i18n("Password %1 copied to clipboard for %2 seconds", text, timeout);
-    KNotification::event("password-unlocked", "Pass", msgPrefix + msg,
-                         "object-unlocked", nullptr, KNotification::CloseOnTimeout,
-                         "krunner_pass");
+    if (actionName == "type") {
+      KNotification::event("password-unlocked", "Pass", i18n("Password %1 is typing...", text),
+                           "object-unlocked", nullptr, KNotification::CloseOnTimeout,
+                           "krunner_pass");
+    } else {
+      const QString msg = i18n("Password %1 copied to clipboard for %2 seconds", text, timeout);
+      KNotification::event("password-unlocked", "Pass", msgPrefix + msg,
+                           "object-unlocked", nullptr, KNotification::CloseOnTimeout,
+                           "krunner_pass");
+    }
 }
 
 K_EXPORT_PLASMA_RUNNER(pass, Pass)
