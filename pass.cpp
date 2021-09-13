@@ -235,11 +235,17 @@ void Pass::run(const Plasma::RunnerContext &context, const Plasma::QueryMatch &m
                         const auto string = QString::fromUtf8(output.data());
                         const auto lines = string.split('\n', QString::SkipEmptyParts);
                         if (!lines.isEmpty()) {
-                            this->showNotification(match.text(), "type");
                             auto *tpass = new QProcess();
                             QStringList args0;
                             args0 << "type" << "--clearmodifiers" << lines[0];
                             tpass->start("xdotool", args0);
+                            connect(tpass, static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
+                                [=](int exitCode, QProcess::ExitStatus exitStatus) {
+                                    Q_UNUSED(exitStatus)
+                                    if (exitCode == 0) {
+                                        this->showNotification(match.text(), "typed");
+                                    }
+                            });
                         }
                     }
                 }
@@ -259,8 +265,8 @@ QList<QAction *> Pass::actionsForMatch(const Plasma::QueryMatch &match)
 void Pass::showNotification(const QString &text, const QString &actionName)
 {
     const QString msgPrefix = actionName.isEmpty() ? "" : actionName + i18n(" of ");
-    if (actionName == "type") {
-      KNotification::event("password-unlocked", "Pass", i18n("Password %1 is typing...", text),
+    if (actionName == "typed") {
+      KNotification::event("password-unlocked", "Pass", i18n("Password %1 typed.", text),
                            "object-unlocked", nullptr, KNotification::CloseOnTimeout,
                            "krunner_pass");
     } else {
